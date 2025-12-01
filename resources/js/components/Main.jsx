@@ -1,0 +1,17 @@
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import '../../css/app.css';
+import ChatBox from "./ChatLayout.jsx";
+
+if (document.getElementById('main')) {
+    // const rootUrl = document.getElementById('main').getAttribute('data-base-url')
+    // || "http://127.0.0.1:8000";
+    const rootUrl = "";
+    
+    // ReactDOM.createRoot(document.getElementById('main')).render(
+    //     <React.StrictMode>
+    //         <ChatBox rootUrl={rootUrl} />
+    //     </React.StrictMode>
+    // );
+}
