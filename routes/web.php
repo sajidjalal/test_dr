@@ -1,17 +1,24 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
-use Illuminate\Support\Facades\Storage;
-// dd(env('REVERB_SSL_CERT'));
-// dd(Storage::disk('public')->url('public/uploads/messages/1760700299-Screenshot 2024-04-24 174053.png'));
+
 Route::get('/', function () {
     return view('welcome');
 });
 
 Auth::routes();
+
+Route::group(['middleware' => 'throttle:6,1'], function () {
+    //allowed 6 attempts every 1 minute
+    Route::post('generate-otp', [AuthController::class, 'generateOtp'])->name('generate.otp');
+    Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('verify.otp');
+});
+
+Route::get('user-register', [HomeController::class, 'getUsers'])->name('user.register');
 
 Route::get('/users', [HomeController::class, 'getUsers'])->name('getUsers');
 Route::get('/home', [HomeController::class, 'index'])->name('home');
