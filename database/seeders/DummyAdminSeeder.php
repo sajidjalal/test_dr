@@ -20,7 +20,7 @@ class DummyAdminSeeder extends Seeder
         $role_id = 1;
 
         $userInfo = User::where('mobile_number', $mobile_number)
-            ->where('email_id', $email)
+            ->where('email', $email)
             ->where('user_code', $user_code)
             ->first();
 
@@ -35,7 +35,7 @@ class DummyAdminSeeder extends Seeder
                 'name' => $name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-                'email_id' => $email,
+                'email' => $email,
                 'mobile_number' => $mobile_number,
                 'user_code' => $user_code,
                 'password' => Hash::make('your-default-password'),

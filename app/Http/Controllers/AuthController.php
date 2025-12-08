@@ -35,13 +35,13 @@ class AuthController extends Controller
         try {
             $rules = [
                 'template_code' => 'required|exists:sms_template,template_code',
-                'mobile_number' => 'nullable|required_without:email_id|digits:10|numeric|exists:users,mobile_number',
-                'email_id' => 'nullable|required_without:mobile_number|email|exists:users,email_id|max:80',
+                'mobile_number' => 'nullable|required_without:email|digits:10|numeric|exists:users,mobile_number',
+                'email' => 'nullable|required_without:mobile_number|email|exists:users,email|max:80',
             ];
 
             $messages = [
                 'mobile_number.required' => 'Mobile number is required',
-                'email_id.required' => 'Email Id is required',
+                'email.required' => 'Email Id is required',
             ];
             $validator = Validator::make($request->all(), $rules, $messages);
             if ($validator->fails()) {
@@ -49,14 +49,14 @@ class AuthController extends Controller
                 $errors_fields = $validator->errors();
             } else {
 
-                $fetch_account_query = User::select('id', 'role_id', 'mobile_number', 'email_id', 'status');
+                $fetch_account_query = User::select('id', 'role_id', 'mobile_number', 'email', 'status');
 
                 if (isset($request->mobile_number)) {
                     $fetch_account_query->where('mobile_number', $request->mobile_number);
                 }
 
-                if (isset($request->email_id)) {
-                    $fetch_account_query->where('email_id', $request->email_id);
+                if (isset($request->email)) {
+                    $fetch_account_query->where('email', $request->email);
                 }
 
                 $fetch_account = $fetch_account_query->first();
@@ -67,7 +67,7 @@ class AuthController extends Controller
                         $response_message = 'Account is deactivated. Please contact the administrator.';
                         $errors_fields = [
                             'mobile_number' => $response_message,
-                            'email_id' => $response_message,
+                            'email' => $response_message,
                         ];
                     } else {
                         $otp_code = rand(pow(10, SMS_LEN - 1), pow(10, SMS_LEN) - 1);
@@ -91,7 +91,7 @@ class AuthController extends Controller
                     $response_message = 'Account is deactivated. Please contact the admin.';
                     $errors_fields = [
                         'mobile_number' => $response_message,
-                        'email_id' => $response_message,
+                        'email' => $response_message,
                     ];
 
                     return Response::json([
@@ -132,7 +132,7 @@ class AuthController extends Controller
             'user_id' => $request->user_id ?? null,
             'type' => 'login',
             'template_code' => $request->template_code,
-            'email_id' => $request->email_id ?? '',
+            'email' => $request->email ?? '',
             'mobile_number' => $request->mobile_number ?? '',
             'otp_code' => $otp_code,
             'otp_time_from' => $otp_time_from,
@@ -145,14 +145,14 @@ class AuthController extends Controller
             SendMobileOTP($request->mobile_number, $otp_code, $request->template_code);
         }
 
-        if ($request->email_id) {
+        if ($request->email) {
             $user_profile = [];
             $user_profile['id'] = 0;
 
             $mail_data = [];
             $mail_data['user_data'] = $user_profile;
             $mail_data['user_type'] = $request->request_type;
-            $mail_data['email_id'] = $request->email_id;
+            $mail_data['email'] = $request->email;
             $mail_data['otp_code'] = $otp_code;
             $mail_data['template_name'] = 'mail.verifiedOtp';
             $mail_data['subject'] = $request->request_type . ' Account Verification';
@@ -170,7 +170,7 @@ class AuthController extends Controller
                 }
                 $attachments = [];
 
-                sendGridCurl($request->email_id, FROM_MAIL_ID, FROM_MAIL_NAME, $data, env('SEND_GRID_TEMPLATE_ID'), FROM_MAIL_ID,  $cc, '', $bcc, $attachments);
+                sendGridCurl($request->email, FROM_MAIL_ID, FROM_MAIL_NAME, $data, env('SEND_GRID_TEMPLATE_ID'), FROM_MAIL_ID,  $cc, '', $bcc, $attachments);
             } else {
                 mail_sending_helper($mail_data);
             }
@@ -179,7 +179,7 @@ class AuthController extends Controller
             $OtpHistoryFields['sent_on_email'] = 1;
         }
 
-        $OtpHistoryFields['email_id'] = $request->email_id ?? NULL;
+        $OtpHistoryFields['email'] = $request->email ?? NULL;
         $OtpHistoryFields['mobile_number'] = $request->mobile_number ?? NULL;
 
 
@@ -197,8 +197,8 @@ class AuthController extends Controller
         try {
             $rules = [
                 'template_code' => 'required|exists:sms_template,template_code',
-                'mobile_number' => 'nullable|required_without:email_id|digits:10|numeric|exists:users,mobile_number',
-                'email_id' => 'nullable|required_without:mobile_number|email|exists:users,email_id|max:80',
+                'mobile_number' => 'nullable|required_without:email|digits:10|numeric|exists:users,mobile_number',
+                'email' => 'nullable|required_without:mobile_number|email|exists:users,email|max:80',
                 'otp_code' => 'required',
             ];
 
@@ -220,7 +220,7 @@ class AuthController extends Controller
                     ['type', 'login'],
                 ])
                     ->when($request->filled('mobile_number'), fn($q) => $q->where('mobile_number', $request->mobile_number))
-                    ->when($request->filled('email_id'), fn($q) => $q->where('email_id', $request->email_id))
+                    ->when($request->filled('email'), fn($q) => $q->where('email', $request->email))
                     ->latest();
 
                 $previousRecord = $otpQuery->first();
@@ -237,7 +237,7 @@ class AuthController extends Controller
                         // Check for active user
                         $userQuery = User::where('status', 1)
                             ->when($request->filled('mobile_number'), fn($q) => $q->where('mobile_number', $request->mobile_number))
-                            ->when($request->filled('email_id'), fn($q) => $q->orWhere('email_id', $request->email_id));
+                            ->when($request->filled('email'), fn($q) => $q->orWhere('email', $request->email));
 
                         $is_user_exist = $userQuery->first();
 
@@ -253,7 +253,7 @@ class AuthController extends Controller
 
                             $token = JWTAuth::claims([
                                 'id' => $is_user_exist->id,
-                                'email_id' => $is_user_exist->email_id,
+                                'email' => $is_user_exist->email,
                                 'mobile_number' => $is_user_exist->mobile_number,
                                 'role_id' => $is_user_exist->role_id,
                             ])->fromUser($is_user_exist);

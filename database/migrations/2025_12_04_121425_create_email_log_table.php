@@ -15,7 +15,7 @@ return new class extends Migration
             Schema::create('email_log', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id')->nullable();
-                $table->string('email_id', 100)->nullable();
+                $table->string('email', 100)->nullable();
                 $table->string('template_name', 50)->nullable();
                 $table->string('subject', 80)->nullable();
                 $table->json('data')->nullable();

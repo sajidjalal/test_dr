@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('first_name', 60);
             $table->string('middle_name', 60)->nullable();
             $table->string('last_name', 60);
-            $table->string('email_id', 200);
+            $table->string('email', 200);
             $table->string('mobile_number', 200);
             $table->string('api_token', 250)->nullable();
             $table->string('user_code', 50)->unique();

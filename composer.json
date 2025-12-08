@@ -15,6 +15,7 @@
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.5",
         "me-shaon/laravel-request-analytics": "^1.8",
+        "munafio/chatify": "^1.6",
         "opcodesio/log-viewer": "*"
     },
     "require-dev": {

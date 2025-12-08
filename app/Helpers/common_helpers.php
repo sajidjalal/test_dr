@@ -199,7 +199,7 @@ function mail_sending_helper($data, $file = '')
 
     try {
         Mail::send($data['template_name'], ['mail_data' => $data], function ($message) use ($data, $file) {
-            $message->to($data['email_id'])->subject($data['subject']);
+            $message->to($data['email'])->subject($data['subject']);
             if (!empty($file)) {
                 $message->attach($file);
             }

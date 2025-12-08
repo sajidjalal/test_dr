@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // LogViewer::auth(function ($request) {
         //     $status = false;
-        //     if ($request->user() && in_array(($request->user()->email_id), SUPER_ADMIN_ARRAY)) {
+        //     if ($request->user() && in_array(($request->user()->email), SUPER_ADMIN_ARRAY)) {
         //         $status = true;
         //     }
         //     return $status;

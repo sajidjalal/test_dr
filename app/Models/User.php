@@ -48,7 +48,7 @@ class User extends Authenticatable
     // ---------- EMAIL ----------
     public function setEmailIdAttribute($value)
     {
-        $this->attributes['email_id'] = customEncrypt($value);
+        $this->attributes['email'] = customEncrypt($value);
     }
 
     public function getEmailIdAttribute($value)

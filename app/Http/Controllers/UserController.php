@@ -23,7 +23,7 @@ class UserController extends Controller
         $response_message = ERROR_MESSAGE;
 
         $rules = [
-            'email_id' => 'required|sometimes|exists:users,id,deleted_at,NULL',
+            'email' => 'required|sometimes|exists:users,id,deleted_at,NULL',
             'salutations_id' => 'sometimes|nullable|numeric',
             'first_name' => 'required|regex:/^[A-Za-z_ ]+$/|max:50',
             'middle_name' => 'sometimes|nullable|string|regex:/^[A-Za-z_ ]+$/|max:20',
@@ -62,7 +62,7 @@ class UserController extends Controller
             'regex:/^[6-9][0-9]{9}$/',
         ];
 
-        $rules['email_id'] = [
+        $rules['email'] = [
             'required',
             'email',
             'max:50',
@@ -95,7 +95,7 @@ class UserController extends Controller
                 },
             ];
 
-            $rules['email_id'] = [
+            $rules['email'] = [
                 'required',
                 'email',
                 'max:50',
@@ -107,7 +107,7 @@ class UserController extends Controller
                     // Perform the optimized query
                     $exists = DB::table('customers')
                         ->whereNull('deleted_at')
-                        ->where('email_id', $encryptedEmail)
+                        ->where('email', $encryptedEmail)
                         ->where('is_login', 1)
                         ->where('role_id', '!=', POS_ROLE_ID) // Additional condition for role_id
                         ->when($request->id, function ($query) use ($request) {
@@ -155,7 +155,7 @@ class UserController extends Controller
                     'middle_name' => $request->middle_name,
                     'last_name' => $request->last_name,
                     'mobile_number' => customEncrypt($request->mobile_number),
-                    'email_id' => customEncrypt($request->email_id),
+                    'email' => customEncrypt($request->email),
                     'date_of_birth' => $request->dob,
                     'date_of_marriage' => $request->date_of_marriage,
                     'gender_master_id' => $request->gender,
