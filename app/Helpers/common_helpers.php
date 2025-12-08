@@ -235,3 +235,34 @@ function generateUniqueNumber($prefix = null)
     }
     return $uniqueNumber;
 }
+
+
+function customEncrypt($string)
+{
+    $string = strval($string);
+
+    $key = strval(env('SECRET_KEY', 'your-encrypt-key'));
+
+    if (empty($key)) {
+        throw new Exception("Encryption key is missing or empty. Set the SECRET_KEY in the environment.");
+    }
+
+    $encrypted = '';
+    for ($i = 0; $i < strlen($string); $i++) {
+        $encrypted .= chr(ord($string[$i]) ^ ord($key[$i % strlen($key)]));
+    }
+
+    return base64_encode($encrypted);
+}
+
+
+function customDecrypt($encryptedString)
+{
+    $key = strval(env('SECRET_KEY', 'your-encrypt-key'));
+    $encryptedString = base64_decode($encryptedString);
+    $decrypted = '';
+    for ($i = 0; $i < strlen($encryptedString); $i++) {
+        $decrypted .= chr(ord($encryptedString[$i]) ^ ord($key[$i % strlen($key)]));
+    }
+    return $decrypted;
+}

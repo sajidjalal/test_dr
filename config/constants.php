@@ -19,3 +19,4 @@ defined('BCC_MAIL_ID') or define('BCC_MAIL_ID', "sajidjalal@gmail.com");
 
 defined('FROM_MAIL_ID') or define('FROM_MAIL_ID', "sajidjalal@gmail.com");
 defined('FROM_MAIL_NAME') or define('FROM_MAIL_NAME', "App Name");
+defined('ERROR_MESSAGE') or define('ERROR_MESSAGE', 'An unexpected error occurred. Please try again later');

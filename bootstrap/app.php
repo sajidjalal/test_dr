@@ -11,9 +11,9 @@ use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
-        channels: __DIR__.'/../routes/channels.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
+        channels: __DIR__ . '/../routes/channels.php',
         health: '/up',
         using: function () {
             Route::middleware('web')->prefix('doctor')->group(base_path('routes/doctor_web_route.php'));
@@ -21,8 +21,32 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->use([
+            // \Illuminate\Http\Middleware\TrustHosts::class,
+            \Illuminate\Http\Middleware\TrustProxies::class,
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class,
+            \Illuminate\Http\Middleware\ValidatePostSize::class,
+            \Illuminate\Foundation\Http\Middleware\TrimStrings::class,
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+            \App\Http\Middleware\VaptHeaderMiddleware::class,
+        ]);
+        $csrfExceptRoutes = require base_path('config/csrf_except.php');
+        $middleware->validateCsrfTokens(
+            except: $csrfExceptRoutes
+        );
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })->create();
+        $exceptions->render(function (ValidationException $e, Request $request) {
+            return response()->json(
+                [
+                    'message' => $e->getMessage(),
+                    'errors' => $e->errors(),
+                    'data' => [],
+                    'errors_fields' => $e->errors(),
+                ],
+                $e->status,
+            );
+        });
+    })
+    ->create();

@@ -45,6 +45,28 @@ class User extends Authenticatable
         ];
     }
 
+    // ---------- EMAIL ----------
+    public function setEmailIdAttribute($value)
+    {
+        $this->attributes['email_id'] = customEncrypt($value);
+    }
+
+    public function getEmailIdAttribute($value)
+    {
+        return customDecrypt($value);
+    }
+
+    // ---------- MOBILE ----------
+    public function setMobileNumberAttribute($value)
+    {
+        $this->attributes['mobile_number'] = customEncrypt($value);
+    }
+
+    public function getMobileNumberAttribute($value)
+    {
+        return customDecrypt($value);
+    }
+
     public function participants()
     {
         return $this->hasMany(ChatParticipant::class, 'user_id', 'id');

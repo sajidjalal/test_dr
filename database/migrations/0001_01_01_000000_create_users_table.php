@@ -32,7 +32,10 @@ return new class extends Migration
             $table->id();
             $table->unsignedInteger('role_id')->index();
             $table->unsignedInteger('reporting_id')->index()->nullable();
-            $table->string('name', 180);
+            $table->string('name', 200);
+            $table->string('first_name', 60);
+            $table->string('middle_name', 60)->nullable();
+            $table->string('last_name', 60);
             $table->string('email_id', 200);
             $table->string('mobile_number', 200);
             $table->string('api_token', 250)->nullable();

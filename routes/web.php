@@ -5,6 +5,8 @@ use App\Http\Controllers\ChatController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
+use App\Models\User;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,7 +20,7 @@ Route::group(['middleware' => 'throttle:6,1'], function () {
     Route::post('verify-otp', [AuthController::class, 'verifyOtp'])->name('verify.otp');
 });
 
-Route::get('user-register', [HomeController::class, 'getUsers'])->name('user.register');
+Route::post('user-register', [UserController::class, 'userRegister'])->name('user.register');
 
 Route::get('/users', [HomeController::class, 'getUsers'])->name('getUsers');
 Route::get('/home', [HomeController::class, 'index'])->name('home');
