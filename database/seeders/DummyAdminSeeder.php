@@ -31,8 +31,8 @@ class DummyAdminSeeder extends Seeder
             $name = $first_name . " " . $last_name;
 
             $userInfo = User::create([
-                'role_id' => $role_id,
-                'name' => $name,
+                'role_id' => 1,
+                'full_name' => $name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,
                 'email' => $email,

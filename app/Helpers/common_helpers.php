@@ -2,7 +2,9 @@
 
 use App\Models\ErrorLogModel;
 use App\Models\MailLogModel;
+use App\Models\RolesModel;
 use App\Models\SmsTemplateModel;
+use App\Models\SystemActivityTrackerModel;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -10,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 function common_helper($data = '')
 {
@@ -255,7 +258,6 @@ function customEncrypt($string)
     return base64_encode($encrypted);
 }
 
-
 function customDecrypt($encryptedString)
 {
     $key = strval(env('SECRET_KEY', 'your-encrypt-key'));
@@ -265,4 +267,138 @@ function customDecrypt($encryptedString)
         $decrypted .= chr(ord($encryptedString[$i]) ^ ord($key[$i % strlen($key)]));
     }
     return $decrypted;
+}
+
+function generateNextUserCode($role_id, $rep_number = 0)
+{
+    $prefix = RolesModel::whereKey($role_id)->value('role_prefix') ?? 'DR';
+
+    $number = User::withTrashed()
+        ->where('role_id', $role_id)
+        ->max('user_code_number') + 1;
+
+    if ($number < 1) {
+        $number = 1;
+    }
+
+    return [
+        'status' => true,
+        'code'   => sprintf('%s%04d', $prefix, $number),
+        'prefix' => $prefix,
+        'number' => $number
+    ];
+}
+
+
+function uploadFile($file, $folderPath, $id, $docOf)
+{
+    $status = false;
+
+    $file_size = $file_name = $folder = $extension = $org_file_name = $message = $file_type = "";
+
+    try {
+        $disk = env('MEDIA_DISK', 'public');
+        $timestamp = time();
+        $extension = strtolower($file->getClientOriginalExtension());
+        $org_file_name = $file->getClientOriginalName();
+
+        // Get file size in bytes
+        $file_size = $file->getSize();
+
+        // Remove extension from original name for length calculation
+        $orgNameWithoutExt = pathinfo($org_file_name, PATHINFO_FILENAME);
+
+        // Create the base part
+        $baseName = "{$timestamp}-{$id}-{$docOf}";
+
+        // Remaining characters allowed for original file name part
+        $maxLength = 80;
+        $extraLength = strlen($baseName . '.' . $extension);
+
+        $allowedForName = $maxLength - $extraLength - 1; // 1 for dash
+        if ($allowedForName < 0) $allowedForName = 0;
+
+        // Truncate original name safely
+        $safeName = substr($orgNameWithoutExt, 0, $allowedForName);
+
+        // Final file name
+        $file_name = "{$baseName}-{$safeName}.{$extension}";
+
+        $folder = "{$folderPath}/{$id}";
+
+        // Ensure the folder exists
+
+        if ($disk != "s3") {
+            if (!Storage::disk($disk)->exists($folder)) {
+                Storage::disk($disk)->makeDirectory($folder);
+            }
+        }
+        Storage::disk($disk)->putFileAs($folder, $file, $file_name);
+
+        // Determine file type
+        $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+        $pdfExtensions = ['pdf'];
+        $wordExtensions = ['doc', 'docx'];
+        $excelExtensions = ['xls', 'xlsx', 'csv'];
+        $pptExtensions = ['ppt', 'pptx'];
+        $txtExtensions = ['txt'];
+
+        if (in_array($extension, $imageExtensions)) {
+            $file_type = 'image';
+        } elseif (in_array($extension, $pdfExtensions)) {
+            $file_type = 'pdf';
+        } elseif (in_array($extension, $wordExtensions)) {
+            $file_type = 'word';
+        } elseif (in_array($extension, $excelExtensions)) {
+            $file_type = 'excel';
+        } elseif (in_array($extension, $pptExtensions)) {
+            $file_type = 'ppt';
+        } elseif (in_array($extension, $txtExtensions)) {
+            $file_type = 'text';
+        } else {
+            $file_type = 'other';
+        }
+
+        $status = true;
+        $message = 'File uploaded successfully.';
+    } catch (\Exception $e) {
+        Log::error('File upload failed.', [
+            'message' => $e->getMessage(),
+            'file'    => isset($file_name) ? $file_name : '',
+            'folder'  => isset($folder) ? $folder : '',
+        ]);
+
+        $message = 'File upload failed: ' . $e->getMessage();
+    }
+
+    return [
+        'status' => $status,
+        'org_file_name' => $org_file_name,
+        'file_name' => $file_name,
+        'folder' => $folder,
+        'extension' => $extension,
+        'file_type' => $file_type,
+        'size' => $file_size, // in bytes
+        'message' => $message,
+    ];
+}
+
+function systemActivityTrackerHelper($data, $type, $created_by, $table_name, $table_id = '', $ip_address = '', $description = '')
+{
+    try {
+        $systemActivityData = [];
+        $systemActivityData['type'] = $type;
+        $systemActivityData['type_of_summary'] = $type;
+        $systemActivityData['table_name'] = $table_name;
+        $systemActivityData['table_id'] = $table_id;
+        $systemActivityData['description'] = $description;
+        $systemActivityData['data'] = json_encode($data, true);
+        $systemActivityData['ip_address'] = $ip_address;
+        $systemActivityData['created_by'] = $created_by;
+
+        SystemActivityTrackerModel::create($systemActivityData);
+    } catch (\Exception $e) {
+        Log::critical('crm_helpers::systemActivityTrackerHelper() : ');
+        Log::critical($e);
+    }
 }

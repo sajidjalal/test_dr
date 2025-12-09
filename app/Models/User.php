@@ -4,12 +4,13 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -17,9 +18,33 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'id',
+        'role_id',
+        'branch_id',
+        'gender_master_id',
+        'reporting_id',        // Allow mass assignment for role_id
+        'first_name',      // Add all necessary fields here
+        'middle_name',
+        'last_name',
+        'full_name',
+        'mobile_number',
         'email',
-        'password',
+        'created_by',
+        'updated_by',
+        'user_code',
+        'user_code_number',
+        'is_backend',
+        'status',
+        'pincode_master_id',
+        'city',
+        'state',
+        'date_of_birth',
+        'date_of_joining',
+        'address',
+        'created_at',
+        'updated_at',
+        'run_seeder_access',
+        'password'
     ];
 
     /**
@@ -46,12 +71,12 @@ class User extends Authenticatable
     }
 
     // ---------- EMAIL ----------
-    public function setEmailIdAttribute($value)
+    public function setEmailAttribute($value)
     {
         $this->attributes['email'] = customEncrypt($value);
     }
 
-    public function getEmailIdAttribute($value)
+    public function getEmailAttribute($value)
     {
         return customDecrypt($value);
     }
