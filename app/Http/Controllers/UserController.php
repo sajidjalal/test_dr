@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
@@ -30,8 +31,6 @@ class UserController extends Controller
         $response_message = ERROR_MESSAGE;
 
         $rules = [
-            // 'email' => ['required', 'email', 'max:50', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/', Rule::unique('users', 'email')->whereNull('deleted_at'),],
-            // 'mobile_number' => ['required', 'numeric', 'digits:10', 'regex:/^[6-9][0-9]{9}$/', Rule::unique('users', 'mobile_number')->whereNull('deleted_at'),],
             'first_name' => 'required|regex:/^[A-Za-z_ ]+$/|max:50',
             'middle_name' => 'sometimes|nullable|string|regex:/^[A-Za-z_ ]+$/|max:20',
             'last_name' => 'sometimes|nullable|string|regex:/^[A-Za-z_ ]+$/|max:20',
@@ -44,36 +43,32 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:8', 'regex:/[a-z]/', 'regex:/[A-Z]/', 'regex:/[0-9]/', 'regex:/[@$!%*#?&]/', 'confirmed'],
         ];
 
-        $rules = [
-            'email' => [
-                'required',
-                'email',
-                'max:50',
-                function ($attribute, $value, $fail) {
-                    $enc = customEncrypt($value);
-                    $exists = User::where('email', $enc)->exists();
-                    if ($exists) {
-                        $fail("The $attribute has already been taken.");
-                    }
-                },
-            ],
-
-            'mobile_number' => [
-                'required',
-                'digits:10',
-                'regex:/^[6-9][0-9]{9}$/',
-                function ($attribute, $value, $fail) {
-                    $enc = customEncrypt($value);
-                    $exists = User::where('mobile_number', $enc)->exists();
-
-                    if ($exists) {
-                        $fail("The $attribute has already been taken.");
-                    }
-                },
-            ],
+        $rules['email'] = [
+            'required',
+            'email',
+            'max:50',
+            function ($attribute, $value, $fail) {
+                $enc = customEncrypt($value);
+                $exists = User::where('email', $enc)->exists();
+                if ($exists) {
+                    $fail("The $attribute has already been taken.");
+                }
+            },
         ];
 
+        $rules['mobile_number'] = [
+            'required',
+            'digits:10',
+            'regex:/^[6-9][0-9]{9}$/',
+            function ($attribute, $value, $fail) {
+                $enc = customEncrypt($value);
+                $exists = User::where('mobile_number', $enc)->exists();
 
+                if ($exists) {
+                    $fail("The $attribute has already been taken.");
+                }
+            },
+        ];
 
         $messages = [
             //
@@ -152,7 +147,7 @@ class UserController extends Controller
                     $fields['password'] =  Hash::make($password);
                 }
 
-                $insertedRecord = User::create($fields);
+                $is_user_exist = $insertedRecord = User::create($fields);
 
                 $table_id = $insertedRecord->id;
 
@@ -182,6 +177,17 @@ class UserController extends Controller
                 }
 
                 systemActivityTrackerHelper($fields, $activity_type, $insertedRecord->id, (new User())->getTable(), $table_id, $this->ip_address);
+
+                $token = JWTAuth::fromUser($is_user_exist);
+
+                $token = JWTAuth::claims([
+                    'id' => $is_user_exist->id,
+                    'email' => $is_user_exist->email,
+                    'mobile_number' => $is_user_exist->mobile_number,
+                    'role_id' => $is_user_exist->role_id,
+                ])->fromUser($is_user_exist);
+
+                header('Authorization:' . $token);
 
                 $status = true;
                 $status_code = 200;

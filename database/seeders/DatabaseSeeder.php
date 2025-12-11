@@ -13,6 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(DummyAdminSeeder::class);
+        $this->call(SmsTemplateSeeder::class);
+        $this->call(RoleSeeder::class);
+
         // User::factory(50)->create();
 
         // User::factory()->create([

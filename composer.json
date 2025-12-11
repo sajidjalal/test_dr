@@ -16,7 +16,10 @@
         "laravel/ui": "^4.5",
         "me-shaon/laravel-request-analytics": "^1.8",
         "munafio/chatify": "^1.6",
-        "opcodesio/log-viewer": "*"
+        "opcodesio/log-viewer": "*",
+        "tymon/jwt-auth": "^2.2",
+         "vinkla/hashids": "^13.0",
+        "yajra/laravel-datatables-oracle": "12.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

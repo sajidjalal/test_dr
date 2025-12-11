@@ -19,8 +19,8 @@ class DummyAdminSeeder extends Seeder
         $user_code = 'SADM000';
         $role_id = 1;
 
-        $userInfo = User::where('mobile_number', $mobile_number)
-            ->where('email', $email)
+        $userInfo = User::where('mobile_number', customEncrypt($mobile_number))
+            ->where('email', customEncrypt($email))
             ->where('user_code', $user_code)
             ->first();
 
@@ -31,7 +31,7 @@ class DummyAdminSeeder extends Seeder
             $name = $first_name . " " . $last_name;
 
             $userInfo = User::create([
-                'role_id' => 1,
+                'role_id' => $role_id,
                 'full_name' => $name,
                 'first_name' => $first_name,
                 'last_name' => $last_name,

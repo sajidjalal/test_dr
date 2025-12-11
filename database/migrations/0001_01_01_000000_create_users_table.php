@@ -53,7 +53,7 @@ return new class extends Migration
             $table->string('profile_pic', 150)->nullable();
             $table->rememberToken();
             $table->integer('notification_count')->nullable()->default(0);
-            $table->unsignedTinyInteger('status')->default(0);
+            $table->unsignedTinyInteger('status')->default(1);
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
